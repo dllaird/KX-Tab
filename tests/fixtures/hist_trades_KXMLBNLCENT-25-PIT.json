@@ -1,0 +1,41 @@
+{
+ "trades": [
+  {
+   "count_fp": "38.00",
+   "created_time": "2025-06-01T12:08:35.363946Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.9900",
+   "taker_book_side": "bid",
+   "taker_outcome_side": "yes",
+   "taker_side": "yes",
+   "ticker": "KXMLBNLCENT-25-PIT",
+   "trade_id": "e8f83eef-ec71-4528-aa9d-6a5bb2d1d07e",
+   "yes_price_dollars": "0.0100"
+  },
+  {
+   "count_fp": "12.00",
+   "created_time": "2025-06-01T12:08:35.363946Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.9900",
+   "taker_book_side": "bid",
+   "taker_outcome_side": "yes",
+   "taker_side": "yes",
+   "ticker": "KXMLBNLCENT-25-PIT",
+   "trade_id": "70ec57be-a451-45d0-8832-1525836694f2",
+   "yes_price_dollars": "0.0100"
+  },
+  {
+   "count_fp": "12.00",
+   "created_time": "2025-05-08T01:44:04.077171Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.9900",
+   "taker_book_side": "ask",
+   "taker_outcome_side": "no",
+   "taker_side": "no",
+   "ticker": "KXMLBNLCENT-25-PIT",
+   "trade_id": "15de94d6-8d26-43c7-8f20-aaf485266989",
+   "yes_price_dollars": "0.0100"
+  }
+ ],
+ "cursor": ""
+}

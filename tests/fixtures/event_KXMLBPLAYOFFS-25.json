@@ -1,0 +1,25 @@
+{
+ "event": {
+  "category": "Sports",
+  "collateral_return_type": "",
+  "event_ticker": "KXMLBPLAYOFFS-25",
+  "exchange_index": 0,
+  "last_updated_ts": "0001-01-01T00:00:00Z",
+  "mutually_exclusive": false,
+  "product_metadata": {
+   "competition": "Pro Baseball",
+   "competition_scope": "Future"
+  },
+  "series_ticker": "KXMLBPLAYOFFS",
+  "settlement_sources": [
+   {
+    "name": "MLB",
+    "url": "https://www.mlb.com/"
+   }
+  ],
+  "strike_period": "",
+  "sub_title": "2025",
+  "title": "Pro Baseball Playoff Qualifiers?"
+ },
+ "markets": []
+}

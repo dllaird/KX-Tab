@@ -1,0 +1,41 @@
+{
+ "trades": [
+  {
+   "count_fp": "26.60",
+   "created_time": "2026-10-01T12:58:23.189191Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.8700",
+   "taker_book_side": "bid",
+   "taker_outcome_side": "yes",
+   "taker_side": "yes",
+   "ticker": "KXNCAAF-27-TEX",
+   "trade_id": "07232d1d-4319-95c0-b7c4-46e774c83a2a",
+   "yes_price_dollars": "0.1300"
+  },
+  {
+   "count_fp": "72.50",
+   "created_time": "2026-10-01T12:37:42.573713Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.8700",
+   "taker_book_side": "bid",
+   "taker_outcome_side": "yes",
+   "taker_side": "yes",
+   "ticker": "KXNCAAF-27-TEX",
+   "trade_id": "07232ed1-02b9-914c-306c-71a9450ad642",
+   "yes_price_dollars": "0.1300"
+  },
+  {
+   "count_fp": "11.00",
+   "created_time": "2026-10-01T12:33:01.560737Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.8800",
+   "taker_book_side": "ask",
+   "taker_outcome_side": "no",
+   "taker_side": "no",
+   "ticker": "KXNCAAF-27-TEX",
+   "trade_id": "07233772-99d9-a155-1878-0eebc105e379",
+   "yes_price_dollars": "0.1200"
+  }
+ ],
+ "cursor": "PAGE2"
+}

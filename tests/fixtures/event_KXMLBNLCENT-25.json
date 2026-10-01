@@ -1,0 +1,33 @@
+{
+ "event": {
+  "category": "Sports",
+  "collateral_return_type": "MECNET",
+  "event_ticker": "KXMLBNLCENT-25",
+  "exchange_index": 0,
+  "last_updated_ts": "0001-01-01T00:00:00Z",
+  "mutually_exclusive": true,
+  "product_metadata": {
+   "competition": "Pro Baseball",
+   "competition_scope": "Divisions"
+  },
+  "series_ticker": "KXMLBNLCENT",
+  "settlement_sources": [
+   {
+    "name": "Fox Sports",
+    "url": "https://www.foxsports.com/"
+   },
+   {
+    "name": "ESPN",
+    "url": "https://www.espn.com/"
+   },
+   {
+    "name": "The Wall Street Journal",
+    "url": "https://www.wsj.com/"
+   }
+  ],
+  "strike_period": "",
+  "sub_title": "2025 NL Central Division",
+  "title": "NL Central Division Winner?"
+ },
+ "markets": []
+}

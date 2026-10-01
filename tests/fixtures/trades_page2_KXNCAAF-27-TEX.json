@@ -1,0 +1,29 @@
+{
+ "trades": [
+  {
+   "count_fp": "2.00",
+   "created_time": "2026-10-01T12:31:56.205486Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.8800",
+   "taker_book_side": "ask",
+   "taker_outcome_side": "no",
+   "taker_side": "no",
+   "ticker": "KXNCAAF-27-TEX",
+   "trade_id": "0723376e-9179-a999-572b-fa8bf62bfd51",
+   "yes_price_dollars": "0.1200"
+  },
+  {
+   "count_fp": "2.00",
+   "created_time": "2026-10-01T12:31:47.295337Z",
+   "is_block_trade": false,
+   "no_price_dollars": "0.8800",
+   "taker_book_side": "ask",
+   "taker_outcome_side": "no",
+   "taker_side": "no",
+   "ticker": "KXNCAAF-27-TEX",
+   "trade_id": "0723376e-0419-b781-04f2-fcd177fee825",
+   "yes_price_dollars": "0.1200"
+  }
+ ],
+ "cursor": ""
+}
