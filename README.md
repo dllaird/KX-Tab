@@ -61,8 +61,46 @@ market and resolution with current values.
 - If a numeric field lands under dimensions, use Convert to Measure.
 - Kalshi keeps no order-book history; `orderbook()` is a snapshot, empty for archived markets.
 - Archived markets are fetched one at a time and are slower (~0.5 s per market).
+- `kxtab.history("TICKER")` overrides `KXTAB_TICKER` for that call (useful on a shared server).
 - Preview without Tableau: `python -m kxtab --ticker KXNCAAF-27 --table history --csv out.csv`.
 - Tests: `pytest` (offline); `KXTAB_LIVE_TESTS=1 pytest` adds live API checks.
+
+## Running on a server (Tableau Cloud)
+
+Tableau Cloud calls TabPy over the internet, so the server needs HTTPS with a certificate from a public
+CA that matches its DNS name (e.g. an Azure VM DNS label, `<name>.<region>.cloudapp.azure.com`).
+Use `deploy/tabpy-https.conf` and settings from `deploy/kxtab.env.example`.
+
+**Network:** open inbound TCP 9004 only to your Tableau Cloud pod's IP ranges (Tableau's "Tableau Cloud
+IP addresses" list) in the Azure NSG and the OS firewall. Certbot's standalone challenge also needs
+TCP 80 during issuance and renewal.
+
+**Linux VM** (repo at `/opt/KX-Tab`):
+```bash
+sudo useradd --system --home /opt/KX-Tab kxtab
+sudo git clone https://github.com/dllaird/KX-Tab.git /opt/KX-Tab && cd /opt/KX-Tab
+sudo python3 -m venv .venv && sudo .venv/bin/pip install -r requirements.txt -r requirements-tabpy.txt
+sudo chown -R kxtab:kxtab /opt/KX-Tab && sudo chmod +x deploy/linux/*.sh
+sudo mkdir -p /etc/kxtab && sudo cp deploy/kxtab.env.example /etc/kxtab/kxtab.env    # edit it
+sudo .venv/bin/tabpy-user add -u tableau -p <password> -f /etc/kxtab/tabpy_users.txt
+sudo chown root:kxtab /etc/kxtab/tabpy_users.txt && sudo chmod 640 /etc/kxtab/tabpy_users.txt
+sudo certbot certonly --standalone -d <dns-name> \
+  --deploy-hook /opt/KX-Tab/deploy/linux/certbot-deploy-hook.sh                      # copies certs to /etc/kxtab/tls
+sudo cp deploy/linux/kxtab-tabpy.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now kxtab-tabpy             # logs: journalctl -u kxtab-tabpy
+```
+
+**Windows VM:** install requirements as above, create the TabPy user, put PEM cert/key files on disk
+(e.g. win-acme with PEM output), fill in a `kxtab.env`, then as Administrator:
+```powershell
+.\deploy\windows\register_task.ps1 -EnvFile C:\kxtab\kxtab.env -AllowFrom <tableau-cloud-ip-ranges>
+Start-ScheduledTask -TaskName "KX-Tab TabPy"
+```
+
+**Tableau Cloud:** Settings > Extensions > Analytics Extensions: enable, add a TabPy connection with
+host `<dns-name>`, port 9004, SSL on, and the TabPy username/password. Table extensions in workbooks
+then run on the server. When several workbooks share one server, pass the ticker in the script:
+`return kxtab.history("KXNCAAF-27")`.
 
 ## License
 

@@ -1,0 +1,24 @@
+# systemd unit for KX-Tab's TabPy.  Install:
+#   sudo cp deploy/linux/kxtab-tabpy.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now kxtab-tabpy
+# Assumes the repo at /opt/KX-Tab, a 'kxtab' system user, and /etc/kxtab/kxtab.env.
+[Unit]
+Description=KX-Tab (TabPy table extensions for Kalshi data)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kxtab
+Group=kxtab
+WorkingDirectory=/opt/KX-Tab
+EnvironmentFile=/etc/kxtab/kxtab.env
+ExecStart=/opt/KX-Tab/deploy/linux/start_tabpy.sh
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
