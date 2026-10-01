@@ -63,3 +63,7 @@ market and resolution with current values.
 - Archived markets are fetched one at a time and are slower (~0.5 s per market).
 - Preview without Tableau: `python -m kxtab --ticker KXNCAAF-27 --table history --csv out.csv`.
 - Tests: `pytest` (offline); `KXTAB_LIVE_TESTS=1 pytest` adds live API checks.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
