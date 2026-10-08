@@ -1,5 +1,5 @@
 # Start TabPy for KX-Tab.
-#   .\tableau\start_tabpy.ps1 [-Ticker KXNCAAF-27] [-TabPy C:\path\to\tabpy.exe] [-Config <tabpy.conf>] [-EnvFile <kxtab.env>]
+#   .\tableau\start_tabpy.ps1 [-Ticker KXNCAAF-27] [-TabPy C:\path\to\tabpy.exe|python.exe] [-Config <tabpy.conf>] [-EnvFile <kxtab.env>]
 # TabPy: -TabPy, else $env:KXTAB_TABPY, else .venv\Scripts\tabpy.exe, else tabpy on PATH.
 # Config: -Config, else $env:KXTAB_TABPY_CONF, else tableau\tabpy.conf (local HTTP). Servers: deploy\tabpy-https.conf.
 param([string]$Ticker, [string]$TabPy, [string]$Config, [string]$EnvFile)
@@ -17,10 +17,19 @@ if (-not $env:KXTAB_TICKER) {
     exit 1
 }
 
-$candidates = @($TabPy, $env:KXTAB_TABPY, (Join-Path $root ".venv\Scripts\tabpy.exe")) | Where-Object { $_ -and (Test-Path $_) }
-$exe = if ($candidates) { @($candidates)[0] } else { (Get-Command tabpy -ErrorAction SilentlyContinue).Source }
-if (-not $exe) {
-    Write-Host "TabPy not found. Pass -TabPy <path>, set KXTAB_TABPY, or: .venv\Scripts\pip install -r requirements-tabpy.txt"
+# TabPy runs as `python -m tabpy.tabpy`: Application Control can block pip's .exe launchers (tabpy.exe).
+# A tabpy.exe path maps to the python.exe of its environment (venv Scripts\ or conda root).
+function Get-TabPyPython([string]$path) {
+    if (-not $path -or -not (Test-Path $path)) { return $null }
+    if ((Split-Path -Leaf $path) -like "python*.exe") { return $path }
+    $dir = Split-Path -Parent $path
+    @((Join-Path $dir "python.exe"), (Join-Path (Split-Path -Parent $dir) "python.exe")) | Where-Object { Test-Path $_ } | Select-Object -First 1
+}
+$onPath = (Get-Command tabpy -ErrorAction SilentlyContinue).Source
+$python = @($TabPy, $env:KXTAB_TABPY, (Join-Path $root ".venv\Scripts\tabpy.exe"), $onPath) |
+    ForEach-Object { Get-TabPyPython $_ } | Select-Object -First 1
+if (-not $python) {
+    Write-Host "TabPy not found. Pass -TabPy <tabpy.exe or python.exe>, set KXTAB_TABPY, or: .venv\Scripts\pip install -r requirements-tabpy.txt"
     exit 1
 }
 
@@ -30,8 +39,7 @@ $confDir = Split-Path -Parent (Resolve-Path $conf)
 $text = Get-Content $conf -Raw
 $users = if ($text -match 'tabpy_conf_dir') { Join-Path $confDir "tabpy_users.txt" } else { $env:KXTAB_PWD_FILE }
 if (-not $users -or -not (Test-Path $users)) {
-    $tool = Join-Path (Split-Path -Parent $exe) "tabpy-user.exe"
-    Write-Host "No TabPy user file. Run: & `"$tool`" add -u tableau -p <password> -f `"$(if ($users) { $users } else { '<KXTAB_PWD_FILE>' })`""
+    Write-Host "No TabPy user file. Run: & `"$python`" -m tabpy.utils.tabpy_user add -u tableau -p <password> -f `"$(if ($users) { $users } else { '<KXTAB_PWD_FILE>' })`""
     exit 1
 }
 foreach ($name in @("KXTAB_CERT_FILE", "KXTAB_KEY_FILE")) {
@@ -44,5 +52,5 @@ foreach ($name in @("KXTAB_CERT_FILE", "KXTAB_KEY_FILE")) {
 
 $env:PYTHONPATH = $root + $(if ($env:PYTHONPATH) { ";" + $env:PYTHONPATH } else { "" })
 $env:TABPY_CONF_DIR = $confDir
-Write-Host "KXTAB_TICKER=$env:KXTAB_TICKER  ->  $exe --config $conf"
-& $exe --config $conf
+Write-Host "KXTAB_TICKER=$env:KXTAB_TICKER  ->  $python -m tabpy.tabpy --config $conf"
+& $python -m tabpy.tabpy --config $conf

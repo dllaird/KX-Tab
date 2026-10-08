@@ -11,12 +11,14 @@ on TabPy's `PYTHONPATH`. To install TabPy here too: `pip install -r requirements
 ```powershell
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
-tabpy-user add -u tableau -p <password> -f tableau\tabpy_users.txt
+python -m tabpy.utils.tabpy_user add -u tableau -p <password> -f tableau\tabpy_users.txt   # TabPy's python
 .\tableau\start_tabpy.ps1 -Ticker KXNCAAF-27 [-TabPy C:\path\to\tabpy.exe]   # or: setx KXTAB_TICKER KXNCAAF-27
 ```
 
 The launcher uses `-TabPy`, else `KXTAB_TABPY`, else `.venv\Scripts\tabpy.exe`, else `tabpy` on PATH,
-and requires a TabPy login (port 9004, settings in `tableau\tabpy.conf`).
+and requires a TabPy login (port 9004, settings in `tableau\tabpy.conf`). It runs that environment's
+`python.exe -m tabpy.tabpy` rather than `tabpy.exe`, since Windows Application Control may block pip's
+`.exe` launchers; `-TabPy` also accepts a `python.exe` directly.
 
 Connect Tableau's analytics extension to `localhost:9004` with that user, then create table extensions:
 
