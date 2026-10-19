@@ -99,8 +99,34 @@ sudo systemctl daemon-reload && sudo systemctl enable --now kxtab-tabpy         
 Start-ScheduledTask -TaskName "KX-Tab TabPy"
 ```
 
+**Azure App Service** (Linux, Python; B1 or higher for Always On). App Service terminates HTTPS on 443
+with its own certificate, so no certbot or cert files. TabPy listens on HTTP 8000 behind it
+(`deploy/appservice/tabpy.conf`), and `deploy/appservice/startup.sh` writes the TabPy login from app
+settings at each start. From Azure Cloud Shell (bash):
+```bash
+RG=kxtab-rg; APP=<globally-unique-name>; LOC=eastus
+az group create -n $RG -l $LOC
+az appservice plan create -g $RG -n kxtab-plan --is-linux --sku B1
+az webapp create -g $RG -p kxtab-plan -n $APP --runtime "PYTHON:3.12" \
+  --startup-file "bash deploy/appservice/startup.sh"
+az webapp config appsettings set -g $RG -n $APP --settings \
+  KXTAB_TICKER=KXNCAAF-27 KXTAB_TABPY_PASSWORD='<password>' WEBSITES_PORT=8000 \
+  SCM_DO_BUILD_DURING_DEPLOYMENT=true PRE_BUILD_COMMAND="cat requirements-tabpy.txt >> requirements.txt"
+az webapp config set -g $RG -n $APP --always-on true --ftps-state Disabled
+az webapp update -g $RG -n $APP --https-only true
+az webapp log config -g $RG -n $APP --docker-container-logging filesystem
+git clone https://github.com/dllaird/KX-Tab.git && cd KX-Tab && git archive -o kxtab.zip HEAD
+az webapp deploy -g $RG -n $APP --src-path kxtab.zip --type zip                      # logs: az webapp log tail -g $RG -n $APP
+curl -u tableau:'<password>' https://$APP.azurewebsites.net/info                      # expect JSON, not 401
+az webapp config access-restriction add -g $RG -n $APP --rule-name tableau-cloud \
+  --action Allow --priority 100 --ip-address <cidr>,<cidr>                           # your pod's Tableau Cloud ranges
+```
+Other `KXTAB_*` settings are app settings too (changing one restarts the app). App Service ends requests
+after ~230 s, so keep big archived series within `KXTAB_MAX_MARKETS`. To update, rerun the
+`git archive` and `az webapp deploy` lines. In Tableau Cloud use host `<app>.azurewebsites.net`, port 443.
+
 **Tableau Cloud:** Settings > Extensions > Analytics Extensions: enable, add a TabPy connection with
-host `<dns-name>`, port 9004, SSL on, and the TabPy username/password. Table extensions in workbooks
+host `<dns-name>`, port 9004 (443 on App Service), SSL on, and the TabPy username/password. Table extensions in workbooks
 then run on the server. When several workbooks share one server, pass the ticker in the script:
 `return kxtab.history("KXNCAAF-27")`.
 
