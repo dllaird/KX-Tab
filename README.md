@@ -125,8 +125,31 @@ Other `KXTAB_*` settings are app settings too (changing one restarts the app). A
 after ~230 s, so keep big archived series within `KXTAB_MAX_MARKETS`. To update, rerun the
 `git archive` and `az webapp deploy` lines. In Tableau Cloud use host `<app>.azurewebsites.net`, port 443.
 
+**Azure Container Apps** (the `Dockerfile`; same startup script and HTTP port 8000 as App Service).
+Container Apps terminates HTTPS on 443 at `<app>.<env-id>.<region>.azurecontainerapps.io`. From Azure
+Cloud Shell (bash), with `ACR` a globally unique registry name (letters and digits only):
+```bash
+RG=marketpredict; APP=kxtab; ENV=kxtab-env; ACR=<registryname>; LOC=eastus2
+git clone https://github.com/dllaird/KX-Tab.git && cd KX-Tab
+az acr create -g $RG -n $ACR -l $LOC --sku Basic --admin-enabled true
+az acr build -r $ACR -t kxtab:v1 .
+az containerapp env create -g $RG -n $ENV -l $LOC --logs-destination none
+az containerapp create -g $RG -n $APP --environment $ENV \
+  --image $ACR.azurecr.io/kxtab:v1 --registry-server $ACR.azurecr.io \
+  --ingress external --target-port 8000 --min-replicas 1 --max-replicas 1 --cpu 1 --memory 2Gi \
+  --secrets tabpy-pwd='<password>' \
+  --env-vars KXTAB_TICKER=KXNCAAF-27 KXTAB_TABPY_PASSWORD=secretref:tabpy-pwd KXTAB_MAX_MARKETS=500
+FQDN=$(az containerapp show -g $RG -n $APP --query properties.configuration.ingress.fqdn -o tsv)
+curl -u tableau:'<password>' https://$FQDN/info                                      # expect JSON, not 401
+az containerapp ingress access-restriction set -g $RG -n $APP --rule-name tableau-1 \
+  --action Allow --ip-address <cidr>                                                 # repeat per Tableau Cloud range
+```
+Logs: `az containerapp logs show -g $RG -n $APP --follow`. To update: `git pull`, rerun `az acr build`
+with a new tag (`kxtab:v2`), then `az containerapp update -g $RG -n $APP --image $ACR.azurecr.io/kxtab:v2`.
+`--min-replicas 1` keeps it warm for Tableau; requests time out after ~240 s.
+
 **Tableau Cloud:** Settings > Extensions > Analytics Extensions: enable, add a TabPy connection with
-host `<dns-name>`, port 9004 (443 on App Service), SSL on, and the TabPy username/password. Table extensions in workbooks
+host `<dns-name>`, port 9004 (443 on App Service or Container Apps), SSL on, and the TabPy username/password. Table extensions in workbooks
 then run on the server. When several workbooks share one server, pass the ticker in the script:
 `return kxtab.history("KXNCAAF-27")`.
 

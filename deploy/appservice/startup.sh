@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Start TabPy for KX-Tab on Azure App Service (Linux, Python).
-# Startup command: bash deploy/appservice/startup.sh
+# Start TabPy for KX-Tab on Azure App Service (Linux, Python) or in the container (Dockerfile).
+# App Service startup command: bash deploy/appservice/startup.sh
 # App settings: KXTAB_TICKER, KXTAB_TABPY_PASSWORD, optional KXTAB_TABPY_USER (default tableau).
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
