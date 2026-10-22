@@ -1,0 +1,30 @@
+# Build the KX-Tab container and publish it to GitHub Container Registry as
+# ghcr.io/dllaird/kx-tab:latest (and :sha-<commit>) on every push to main.
+name: container
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/dllaird/kx-tab:latest
+            ghcr.io/dllaird/kx-tab:sha-${{ github.sha }}

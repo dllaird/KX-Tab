@@ -126,16 +126,14 @@ after ~230 s, so keep big archived series within `KXTAB_MAX_MARKETS`. To update,
 `git archive` and `az webapp deploy` lines. In Tableau Cloud use host `<app>.azurewebsites.net`, port 443.
 
 **Azure Container Apps** (the `Dockerfile`; same startup script and HTTP port 8000 as App Service).
-Container Apps terminates HTTPS on 443 at `<app>.<env-id>.<region>.azurecontainerapps.io`. From Azure
-Cloud Shell (bash), with `ACR` a globally unique registry name (letters and digits only):
+Container Apps terminates HTTPS on 443 at `<app>.<env-id>.<region>.azurecontainerapps.io`. GitHub
+Actions (`.github/workflows/container.yml`) builds the image on every push to `main` and publishes
+`ghcr.io/dllaird/kx-tab:latest`; make the package public once (GitHub > Packages > kx-tab > Package
+settings > Change visibility). The image holds no secrets. From Azure Cloud Shell (bash):
 ```bash
-RG=marketpredict; APP=kxtab; ENV=kxtab-env; ACR=<registryname>; LOC=eastus2
-git clone https://github.com/dllaird/KX-Tab.git && cd KX-Tab
-az acr create -g $RG -n $ACR -l $LOC --sku Basic --admin-enabled true
-az acr build -r $ACR -t kxtab:v1 .
+RG=marketpredict; APP=kxtab; ENV=kxtab-env; LOC=eastus2
 az containerapp env create -g $RG -n $ENV -l $LOC --logs-destination none
-az containerapp create -g $RG -n $APP --environment $ENV \
-  --image $ACR.azurecr.io/kxtab:v1 --registry-server $ACR.azurecr.io \
+az containerapp create -g $RG -n $APP --environment $ENV --image ghcr.io/dllaird/kx-tab:latest \
   --ingress external --target-port 8000 --min-replicas 1 --max-replicas 1 --cpu 1 --memory 2Gi \
   --secrets tabpy-pwd='<password>' \
   --env-vars KXTAB_TICKER=KXNCAAF-27 KXTAB_TABPY_PASSWORD=secretref:tabpy-pwd KXTAB_MAX_MARKETS=500
@@ -144,8 +142,9 @@ curl -u tableau:'<password>' https://$FQDN/info                                 
 az containerapp ingress access-restriction set -g $RG -n $APP --rule-name tableau-1 \
   --action Allow --ip-address <cidr>                                                 # repeat per Tableau Cloud range
 ```
-Logs: `az containerapp logs show -g $RG -n $APP --follow`. To update: `git pull`, rerun `az acr build`
-with a new tag (`kxtab:v2`), then `az containerapp update -g $RG -n $APP --image $ACR.azurecr.io/kxtab:v2`.
+Logs: `az containerapp logs show -g $RG -n $APP --follow`. To update: push to `main`, wait for the
+workflow, then `az containerapp update -g $RG -n $APP --image ghcr.io/dllaird/kx-tab:sha-<commit>`
+(a new tag makes Container Apps pull the new image).
 `--min-replicas 1` keeps it warm for Tableau; requests time out after ~240 s.
 
 **Tableau Cloud:** Settings > Extensions > Analytics Extensions: enable, add a TabPy connection with
